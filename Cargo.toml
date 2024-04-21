@@ -1,0 +1,12 @@
+[package]
+name = "digitalrain"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+fps_counter = "3.0.0"
+kiss3d = "0.35.0"
+nalgebra = "0.30"
+rand = "0.8.5"
