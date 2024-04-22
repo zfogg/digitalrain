@@ -71,6 +71,27 @@ impl DigitalRain {
     fn update(&mut self, rng: &mut ThreadRng) {
         self.frame += 1;
 
+        for drip in self.drips.iter_mut() {
+            if drip.row >= self.size {
+                continue;
+            }
+            let advance_row = self.frame % drip.velocity == 0;
+            let should_drip = self.frame % rng.gen_range(5..30) == 0;
+            if advance_row {
+                drip.row += 1;
+            }
+            if drip.row == self.size {
+                continue;
+            }
+            if should_drip || advance_row {
+                self.grid[drip.col * self.size + drip.row] = drip
+                    .glyphs
+                    .choose(rng)
+                    .unwrap_or(&" ".to_string())
+                    .to_owned();
+            }
+        }
+
         let mut deleted = vec![];
         self.drips.retain(|drip| {
             let r = drip.row < self.size;
@@ -105,24 +126,6 @@ impl DigitalRain {
                 glyphs: vec![" ".to_string()],
                 created: self.frame,
             });
-        }
-
-        for drip in self.drips.iter_mut() {
-            if drip.row >= self.size {
-                continue;
-            }
-            let advance_row = self.frame % drip.velocity == 0;
-            let should_drip = self.frame % rng.gen_range(5..30) == 0;
-            if should_drip || advance_row {
-                self.grid[drip.col * self.size + drip.row] = drip
-                    .glyphs
-                    .choose(rng)
-                    .unwrap_or(&" ".to_string())
-                    .to_owned();
-            }
-            if advance_row {
-                drip.row += 1;
-            }
         }
     }
 
@@ -187,7 +190,7 @@ fn main() {
     let mut rng = rand::thread_rng();
 
     for _i in 0..rng.gen_range(dr.size / 4..dr.size) {
-        let glyph_count = rng.gen_range(1..=20);
+        let glyph_count = rng.gen_range(3..=20);
         dr.drips.push(DripAnimation {
             col: rng.gen_range(0..dr.size),
             row: 0,
