@@ -8,13 +8,12 @@ use kiss3d::window::Window;
 use na::{Point2, Point3};
 use std::iter;
 //use rand::distributions::{Distribution, Uniform};
+use fps_counter::FPSCounter;
 use rand::rngs::ThreadRng;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use std::path::Path;
 use std::rc::Rc;
-
-use fps_counter::FPSCounter;
 
 struct DigitalRain {
     size: usize,
@@ -81,7 +80,7 @@ impl DigitalRain {
             r
         });
         for deleted_drip in deleted {
-            let glyph_count = rng.gen_range(1..=20);
+            let glyph_count = rng.gen_range(3..=20);
             self.drips.push(DripAnimation {
                 col: rng.gen_range(0..self.size),
                 row: 0,
@@ -130,23 +129,32 @@ impl DigitalRain {
     fn draw(&mut self, window: &mut Window) {
         for j in 0..(self.size - 1) {
             for i in 0..(self.size - 1) {
+                // default to green, and switch to white if there's
+                // a drip with visible glyphs at this spot
+                let mut color = Point3::new(0.0, 1.0, 0.0);
+                for drip in self.drips.iter_mut() {
+                    if drip.col == i && drip.row == j && drip.glyphs != vec![" "] {
+                        color = Point3::new(1.0, 1.0, 1.0);
+                        break;
+                    }
+                }
                 window.draw_text(
                     &self.grid[i * self.size + j],
                     &Point2::new(200.0 + i as f32 * 120.0, 50.0 + j as f32 * 55.0),
                     60.0,
                     &self.font,
-                    &Point3::new(0.0, 1.0, 0.0),
+                    &color,
                 );
             }
         }
     }
 
-    fn grid_at(&self, x: usize, y: usize) -> &String {
-        &self.grid[y * self.size + x]
-    }
-    fn grid_set(&mut self, x: usize, y: usize, val: String) {
-        self.grid[y * self.size + x] = val;
-    }
+    //fn grid_at(&self, x: usize, y: usize) -> &String {
+    //    &self.grid[y * self.size + x]
+    //}
+    //fn grid_set(&mut self, x: usize, y: usize, val: String) {
+    //    self.grid[y * self.size + x] = val;
+    //}
 }
 
 fn main() {
