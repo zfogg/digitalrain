@@ -35,11 +35,16 @@ struct DripAnimation {
 }
 
 fn random_ascii(rng: &mut ThreadRng, len: usize) -> String {
+    // ascii + half-width kana:
     //const CHARSET: &str = " !\"#$%&'`()*+,-_./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^abcdefghijklmnopqrstuvwxyz{|}~ ｡｢｣､･ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝﾞﾟ";
-    const CHARSET: &str = " !\"#$%&'`()*+,-_./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^abcdefghijklmnopqrstuvwxyz{|}~ ｡｢｣､･ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜ";
-    //const CHARSET: &str = " !\"#$%&'`()*+,-_./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^abcdefghijklmnopqrstuvwxyz{|}~ﾟ";
+    //const CHARSET: &str = " !\"#$%&'`()*+,-_./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^abcdefghijklmnopqrstuvwxyz{|}~ ｡｢｣､･ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜ";
+
+    // customized from above to look Matrix-y
+    const CHARSET: &str = " '`,-_0123456789<>?ABCDEFGHIJKLMNOPQRSTUVWXYZ ｡｢｣､･ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜ";
+
     //const CHARSET: &str = " ｡｢｣､･ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝﾞﾟ";
     //const CHARSET: &str = "日本語の場合はランダムに生成された文章以外に、著作権が切れた小説などが利用されることもある。";
+
     let charset = CHARSET.split("").collect::<Vec<&str>>();
     let one_char = || charset[rng.gen_range(0..charset.len())];
     iter::repeat_with(one_char).take(len).collect()
@@ -48,12 +53,19 @@ fn random_ascii(rng: &mut ThreadRng, len: usize) -> String {
 fn random_ascii_vec(rng: &mut ThreadRng, len: usize) -> Vec<String> {
     let mut ascii = vec![];
     for x in random_ascii(rng, len).split("").collect::<Vec<&str>>() {
-        if x != "" {
+        if !x.is_empty() {
             ascii.push(String::from(x));
         }
     }
     println!("{:}", ascii.join(", "));
-    return ascii;
+    ascii
+    //let mut ascii = random_ascii(rng, len).split("").collect::<Vec<&str>>();
+    //ascii.retain(|c| c != &"");
+    //println!("{:}", ascii.join(", "));
+    //ascii
+    //    .into_iter()
+    //    .map(|x| x.to_string())
+    //    .collect::<Vec<String>>()
 }
 
 impl DigitalRain {
@@ -66,7 +78,7 @@ impl DigitalRain {
             if !r && drip.glyphs != vec![" "] {
                 deleted.push(drip.clone());
             }
-            return r;
+            r
         });
         for deleted_drip in deleted {
             let glyph_count = rng.gen_range(1..=20);
@@ -120,7 +132,7 @@ impl DigitalRain {
             for i in 0..(self.size - 1) {
                 window.draw_text(
                     &self.grid[i * self.size + j],
-                    &Point2::new(200.0 + i as f32 * 120.0, 50.0 + j as f32 * 45.0),
+                    &Point2::new(200.0 + i as f32 * 120.0, 50.0 + j as f32 * 55.0),
                     60.0,
                     &self.font,
                     &Point3::new(0.0, 1.0, 0.0),
@@ -130,7 +142,7 @@ impl DigitalRain {
     }
 
     fn grid_at(&self, x: usize, y: usize) -> &String {
-        return &self.grid[y * self.size + x];
+        &self.grid[y * self.size + x]
     }
     fn grid_set(&mut self, x: usize, y: usize, val: String) {
         self.grid[y * self.size + x] = val;
@@ -157,7 +169,8 @@ fn main() {
         //font: Font::new(&Path::new("assets/fonts/NotoSansMono_variable.ttf")).unwrap(),
         //font: Font::new(&Path::new("assets/fonts/Backwards.ttf")).unwrap(),
         //font: Font::new(&Path::new("assets/fonts/Jaycons.ttf")).unwrap(),
-        font: Font::new(&Path::new("assets/fonts/NotoSansJP_variable.ttf")).unwrap(),
+        //font: Font::new(&Path::new("assets/fonts/NotoSansJP_variable.ttf")).unwrap(),
+        font: Font::new(&Path::new("assets/fonts/NotoSansJP_backward.ttf")).unwrap(),
         //window: window,
         grid: vec![String::from(" "); size * size],
         drips: vec![],
@@ -205,12 +218,9 @@ fn main() {
 
         for event in window.events().iter() {
             match event.value {
-                WindowEvent::FramebufferSize(x, y) => {
-                    println!("frame buffer size event {}, {}", x, y);
-                }
-                WindowEvent::Key(Key::Escape, Action::Release, _)
-                | WindowEvent::Key(Key::Q, Action::Release, _)
-                | WindowEvent::Close => {
+                WindowEvent::Close
+                | WindowEvent::Key(Key::Escape, Action::Release, _)
+                | WindowEvent::Key(Key::Q, Action::Release, _) => {
                     println!("close event");
                     window.close();
                 }
